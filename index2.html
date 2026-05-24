@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ar" direction="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> M5  لإدارة السيارات</title>
+  
+  <!-- استدعاء خط Cairo الحديث وأيقونات FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #334155;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      direction: rtl;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* الهيدر الحديث */
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+      color: white;
+      padding: 35px;
+      border-radius: var(--radius);
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    header p {
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    /* لوحة الإحصائيات */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+
+    .stat-info h3 {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .stat-info .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 5px;
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50px;
+      background: #f0fdf4;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    /* قسم التحكم والبحث */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 30px;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace { grid-template-columns: 1fr; }
+    }
+
+    .main-panel {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 25px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    /* الأزرار العصرية */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      font-size: 0.95rem;
+    }
+
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: #f1f5f9; color: var(--primary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+
+    /* الجدول الاحترافي */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--primary);
+      padding: 14px 16px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #f8fafc; }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .status-done { background: #dcfce7; color: #15803d; }
+    .status-pending { background: #fef3c7; color: #b45309; }
+
+    /* شريط الجانب - البحث المتقدم */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .search-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 25px;
+    }
+
+    .search-card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    /* النتائج الفورية */
+    .live-results-count {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    /* نظام الـ Modal لإضافة البيانات بشكل آمن ومودرن */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: var(--transition);
+      z-index: 1000;
+    }
+
+    .modal.active { opacity: 1; pointer-events: auto; }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 600px;
+      padding: 30px;
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+      transform: scale(0.95);
+      transition: var(--transition);
+    }
+
+    .modal.active .modal-content { transform: scale(1); }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    /* الإشعارات التوست الذكية */
+    .toast {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 1010;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- الهيدر -->
+    <header>
+      <div>
+        <h1>نظام <span>M5</span> الذكي</h1>
+        <p>إدارة أسطول السيارات والبيانات محلياً وبكل سهولة</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="openModal()"><i class="fa-solid fa-plus"></i> إضافة سيارة جديدة</button>
+        <button class="btn btn-secondary" onclick="exportTable()"><i class="fa-solid fa-download"></i> تصدير CSV</button>
+      </div>
+    </header>
+
+    <!-- الإحصائيات الذكية المحدثة تلقائياً -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>إجمالي السيارات</h3>
+          <div class="value" id="statTotal">0</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-car"></i></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>سيارات غير مسلمة</h3>
+          <div class="value" id="statPending">0</div>
+        </div>
+        <div class="stat-icon" style="background:#fffbeb; color:#d97706;"><i class="fa-solid fa-clock"></i></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>إجمالي الأجور</h3>
+          <div class="value" id="statRevenue">0 د.أ</div>
+        </div>
+        <div class="stat-icon" style="background:#eff6ff; color:#2563eb;"><i class="fa-solid fa-money-bill-wave"></i></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>آخر تحديث</h3>
+          <div class="value" id="statTime" style="font-size:1rem; font-weight:600;">-</div>
+        </div>
+        <div class="stat-icon" style="background:#f1f5f9; color:#64748b;"><i class="fa-solid fa-rotate"></i></div>
+      </div>
+    </div>
+
+    <!-- مساحة العمل الرئيسية -->
+    <div class="workspace">
+      <!-- لوحة الجدول -->
+      <div class="main-panel">
+        <div class="panel-header">
+          <h2 style="font-size: 1.2rem; font-weight: 700;"><i class="fa-solid fa-list-check"></i> جدول البيانات الفعلي</h2>
+          <button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="clearAllData()"><i class="fa-solid fa-trash-can"></i> مسح الذاكرة</button>
+        </div>
+        
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>نوع السيارة</th>
+                <th>اليوم</th>
+                <th>تاريخ ووقت الاستلام</th>
+                <th>اسم العميل</th>
+                <th>الأجرة</th>
+                <th>تاريخ ووقت التسليم</th>
+                <th>ملاحظات</th>
+                <th>الحالة</th>
+                <th style="text-align:center;">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- تُحقن الصفوف ديناميكياً عبر JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- لوحة البحث الفوري الجانبية -->
+      <div class="side-panel">
+        <div class="search-card">
+          <h2><i class="fa-solid fa-magnifying-glass"></i> فلترة وبحث ذكي</h2>
+          <div class="form-group">
+            <label>نوع السيارة</label>
+            <input type="text" id="searchType" class="form-control" placeholder="ابحث بنوع السيارة..." oninput="liveSearch()">
+          </div>
+          <div class="form-group">
+            <label>اسم العميل</label>
+            <input type="text" id="searchOwner" class="form-control" placeholder="ابحث باسم العميل..." oninput="liveSearch()">
+          </div>
+          <div class="form-group">
+            <label>حالة التسليم</label>
+            <select id="searchStatus" class="form-control" onchange="liveSearch()">
+              <option value="all">الكل</option>
+              <option value="done">مسلمة بالكامل</option>
+              <option value="pending">قيد الانتظار</option>
+            </select>
+          </div>
+          <div class="live-results-count" id="liveResultsCount">طابق البحث: 0 صفوف</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>© 2026 نظام M5 لإدارة السيارات المطور | جميع البيانات تُحفظ محلياً بمتصفحك الآمن.</p>
+    </footer>
+  </div>
+
+  <!-- النافذة المنبثقة الحديثة (Modal) لإدخال نظيف وبدون أخطاء -->
+  <div class="modal" id="carModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-weight: 700; color: var(--primary);"><i class="fa-solid fa-car-side"></i> إضافة / تعديل بيانات السيارة</h3>
+        <button onclick="closeModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+      </div>
+      <form id="carForm" onsubmit="handleFormSubmit(event)">
+        <div class="modal-grid">
+          <div class="form-group">
+            <label>نوع السيارة *</label>
+            <input type="text" id="carType" class="form-control" required placeholder="مثال: BMW M5">
+          </div>
+          <div class="form-group">
+            <label>اليوم</label>
+            <input type="text" id="carDay" class="form-control" placeholder="مثال: الأحد">
+          </div>
+          <div class="form-group">
+            <label>تاريخ الاستلام</label>
+            <input type="date" id="receiveDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>ساعة الاستلام</label>
+            <input type="time" id="receiveTime" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>اسم العميل *</label>
+            <input type="text" id="ownerName" class="form-control" required placeholder="اسم العميل الرباعي">
+          </div>
+          <div class="form-group">
+            <label>الأجرة (رقم) *</label>
+            <input type="number" id="fare" class="form-control" required placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>تاريخ التسليم (اتركه فارغاً إن لم تُسلم)</label>
+            <input type="date" id="deliveryDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>ساعة التسليم</label>
+            <input type="time" id="deliveryTime" class="form-control">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+          <label>ملاحظات إضافية</label>
+          <textarea id="notes" class="form-control" rows="2" placeholder="أي ملاحظات تخص حالة السيارة أو الإيجار..."></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> حفظ البيانات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- التوست -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // مصفوفة البيانات الرئيسية
+    let carsData = [];
+    let currentEditIndex = null;
+
+    // تهيئة واسترجاع البيانات عند التشغيل
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedData = localStorage.getItem('M5_Cars_Data');
+      if (savedData) {
+        carsData = JSON.parse(savedData);
+      } else {
+        // بيانات تجريبية أول مرة فقط لإعطاء مظهر رائع
+        carsData = [
+          { type: 'BMW M5', day: 'السبت', receiveDate: '2026-05-23', receiveTime: '10:00', name: 'أحمد علي', fare: 150, deliveryDate: '2026-05-24', deliveryTime: '10:00', notes: 'سيارة نظيفة تماماً' },
+          { type: 'Mercedes E200', day: 'الأحد', receiveDate: '2026-05-24', receiveTime: '09:30', name: 'سارة عمر', fare: 120, deliveryDate: '', deliveryTime: '', notes: 'تحتاج غسيل عند العودة' }
+        ];
+        saveToLocalStorage();
+      }
+      renderTable(carsData);
+      updateStats();
+    });
+
+    // رسم الجدول بناءً على مصفوفة الفلترة الممررة
+    function renderTable(dataArray) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (dataArray.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:30px;"><i class="fa-solid fa-folder-open" style="font-size:2rem; display:block; margin-bottom:10px;"></i> لا يوجد بيانات لعرضها حالياً</td></tr>`;
+        return;
+      }
+
+      dataArray.forEach((car) => {
+        // إيجاد الفهرس الحقيقي في المصفوفة الأم
+        const actualIndex = carsData.indexOf(car);
+        
+        const isDone = car.deliveryDate !== '';
+        const statusBadge = isDone 
+          ? `<span class="status-badge status-done"><i class="fa-solid fa-check"></i> مسلمة</span>`
+          : `<span class="status-badge status-pending"><i class="fa-solid fa-spinner"></i> في الخدمة</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:600; color:var(--primary);">${escapeHtml(car.type)}</td>
+          <td>${escapeHtml(car.day || '-')}</td>
+          <td><small>${car.receiveDate || '-'} | ${car.receiveTime || '-'}</small></td>
+          <td>${escapeHtml(car.name)}</td>
+          <td style="font-weight:600; color:var(--accent);">${car.fare} د.أ</td>
+          <td><small>${car.deliveryDate || '-'} | ${car.deliveryTime || '-'}</small></td>
+          <td style="font-style:italic; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(car.notes || '-')}</td>
+          <td>${statusBadge}</td>
+          <td style="text-align:center; white-space:nowrap;">
+            <button class="btn btn-secondary" style="padding:5px 10px; font-size:0.8rem;" onclick="openModal(${actualIndex})"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="deleteRow(${actualIndex})"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('liveResultsCount').textContent = `طابق البحث: ${dataArray.length} صفوف`;
+    }
+
+    // تحديث الإحصائيات الذكية بذكاء
+    function updateStats() {
+      document.getElementById('statTotal').textContent = carsData.length;
+      
+      const pendingCount = carsData.filter(car => car.deliveryDate === '').length;
+      document.getElementById('statPending').textContent = pendingCount;
+
+      const totalRevenue = carsData.reduce((sum, car) => sum + Number(car.fare || 0), 0);
+      document.getElementById('statRevenue').textContent = `${totalRevenue} د.أ`;
+
+      const lastUpdate = localStorage.getItem('M5_Last_Update') || '-';
+      document.getElementById('statTime').textContent = lastUpdate;
+    }
+
+    // حفظ وتحديث البيانات بالـ LocalStorage
+    function saveToLocalStorage() {
+      localStorage.setItem('M5_Cars_Data', JSON.stringify(carsData));
+      const timeString = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      localStorage.setItem('M5_Last_Update', timeString);
+    }
+
+    // إدارة الـ Modal
+    function openModal(index = null) {
+      currentEditIndex = index;
+      const modal = document.getElementById('carModal');
+      const form = document.getElementById('carForm');
+      form.reset();
+
+      if (index !== null) {
+        const car = carsData[index];
+        document.getElementById('carType').value = car.type;
+        document.getElementById('carDay').value = car.day;
+        document.getElementById('receiveDate').value = car.receiveDate;
+        document.getElementById('receiveTime').value = car.receiveTime;
+        document.getElementById('ownerName').value = car.name;
+        document.getElementById('fare').value = car.fare;
+        document.getElementById('deliveryDate').value = car.deliveryDate;
+        document.getElementById('deliveryTime').value = car.deliveryTime;
+        document.getElementById('notes').value = car.notes;
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('carModal').classList.remove('active');
+      currentEditIndex = null;
+    }
+
+    // معالجة تسليم الفورم (إضافة أو تعديل)
+    function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const carObject = {
+        type: document.getElementById('carType').value,
+        day: document.getElementById('carDay').value,
+        receiveDate: document.getElementById('receiveDate').value,
+        receiveTime: document.getElementById('receiveTime').value,
+        name: document.getElementById('ownerName').value,
+        fare: Number(document.getElementById('fare').value),
+        deliveryDate: document.getElementById('deliveryDate').value,
+        deliveryTime: document.getElementById('deliveryTime').value,
+        notes: document.getElementById('notes').value
+      };
+
+      if (currentEditIndex !== null) {
+        carsData[currentEditIndex] = carObject;
+        showToast('<i class="fa-solid fa-user-check"></i> تم تحديث بيانات السيارة بنجاح');
+      } else {
+        carsData.push(carObject);
+        showToast('<i class="fa-solid fa-circle-check"></i> تم إضافة سيارة جديدة بنجاح');
+      }
+
+      saveToLocalStorage();
+      closeModal();
+      liveSearch(); // لتحديث الجدول بناءً على الفلاتر الحالية
+      updateStats();
+    }
+
+    // حذف صف محدد بشكل آمن
+    function deleteRow(index) {
+      if (confirm('هل أنت متأكد من رغبتك بحذف هذا السجل نهائياً؟')) {
+        carsData.splice(index, 1);
+        saveToLocalStorage();
+        liveSearch();
+        updateStats();
+        showToast('<i class="fa-solid fa-trash-can"></i> تم الحذف بنجاح', true);
+      }
+    }
+
+    // مسح كلي للذاكرة
+    function clearAllData() {
+      if (confirm('تحذير! سيتم مسح كافة البيانات المحفوظة محلياً بالكامل. هل تريد الاستمرار؟')) {
+        carsData = [];
+        saveToLocalStorage();
+        localStorage.removeItem('M5_Last_Update');
+        liveSearch();
+        updateStats();
+        showToast('<i class="fa-solid fa-triangle-exclamation"></i> تم تصفية كافة البيانات');
+      }
+    }
+
+    // محرك البحث الفوري (Live Multi-filter Search)
+    function liveSearch() {
+      const typeQuery = document.getElementById('searchType').value.toLowerCase().trim();
+      const ownerQuery = document.getElementById('searchOwner').value.toLowerCase().trim();
+      const statusQuery = document.getElementById('searchStatus').value;
+
+      const filtered = carsData.filter(car => {
+        const matchesType = car.type.toLowerCase().includes(typeQuery);
+        const matchesOwner = car.name.toLowerCase().includes(ownerQuery);
+        
+        let matchesStatus = true;
+        if (statusQuery === 'done') matchesStatus = car.deliveryDate !== '';
+        if (statusQuery === 'pending') matchesStatus = car.deliveryDate === '';
+
+        return matchesType && matchesOwner && matchesStatus;
+      });
+
+      renderTable(filtered);
+    }
+
+    // تصدير البيانات إلى CSV متوافق مع Excel ويدعم اللغة العربية تماماً
+    function exportTable() {
+      if (carsData.length === 0) {
+        showToast('لا توجد بيانات متاحة للتصدير', true);
+        return;
+      }
+
+      let csvContent = "نوع السيارة,اليوم,تاريخ الاستلام,ساعة الاستلام,اسم العميل,الأجرة,تاريخ التسليم,ساعة التسليم,ملاحظات\n";
+      
+      carsData.forEach(car => {
+        let row = [
+          `"${car.type}"`,
+          `"${car.day || ''}"`,
+          `"${car.receiveDate || ''}"`,
+          `"${car.receiveTime || ''}"`,
+          `"${car.name}"`,
+          `"${car.fare}"`,
+          `"${car.deliveryDate || ''}"`,
+          `"${car.deliveryTime || ''}"`,
+          `"${car.notes || ''}"`
+        ];
+        csvContent += row.join(',') + '\n';
+      });
+
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `تقرير_M5_السيارات_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      showToast('<i class="fa-solid fa-file-excel"></i> تم تصدير ملف الـ CSV بنجاح');
+    }
+
+    // ميكانيكية إظهار التوست الإشعاري السريع
+    function showToast(message, isDanger = false) {
+      const toast = document.getElementById('toast');
+      toast.innerHTML = message;
+      toast.style.background = isDanger ? '#ef4444' : 'var(--primary)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    // حماية ضد ثغرات XSS عند عرض النصوص المدخلة من المستخدم
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
